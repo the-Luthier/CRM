@@ -21,7 +21,7 @@ RUN apk add build-base
 
 # Download and install ncurses 6.4 from source
 RUN set -e; set -x; \
-    apk --no-cache add openssl postgresql-dev libffi-dev wget build-base && \
+    apk --no-cache add openssl libffi-dev wget build-base && \
     wget https://invisible-mirror.net/archives/ncurses/current/ncurses-6.4-20230408.tgz && \
     tar -xzf ncurses-6.4-20230408.tgz && \
     cd ncurses-6.4-20230408 && \
