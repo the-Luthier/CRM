@@ -20,6 +20,8 @@ from django.urls import path
 from django.contrib.auth.models import User
 from django.urls import include, path
 from rest_framework import routers, serializers, viewsets
+from CRMapp import urls
+from CRMapp.models import Profile
 
 #Create entire project URL's here ....
 
@@ -27,13 +29,13 @@ from rest_framework import routers, serializers, viewsets
 # Serializers define the API representation.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = User
+        model = Profile
         fields = ['url', 'username', 'email', 'is_staff']
 
 
 # ViewSets define the view behavior.
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = Profile.objects.all()
     serializer_class = UserSerializer
 
 
