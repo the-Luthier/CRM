@@ -30,6 +30,8 @@ class Profile(models.Model):
     verification_code = models.CharField(max_length=6, blank=False)
     is_verified = models.BooleanField(default=False, blank=False) 
 
+    REQUIRED_FIELDS = ['phone_number', 'full_name', 'adress', 'verification_code', 'is_verified', ]
+
     def __str__(self):
             return f'{self.user.username}\'s profile'    
 
