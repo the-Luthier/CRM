@@ -1,2 +1,2 @@
 # CRM
-CRM cloud based web application backend
+CRM(Client Relations Management) cloud based web application backend with python-django. 
