@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: CRM
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: CRMapp
+  template:
+    metadata:
+      labels:
+        app: CRMapp
+    spec:
+      containers:
+      - name: CRM
+        image: onurkaroff/CRM:latest
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: "1"
+            memory: "5Gi"
+          requests:
+            cpu: "0.5"
+            memory: "3Gi"
+        ports:
+        - containerPort: 8000
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 10000
+          capabilities:
+            drop:
+            - ALL
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20      
