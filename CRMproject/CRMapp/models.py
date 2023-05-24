@@ -17,6 +17,7 @@ class ProfileTypes(models.TextChoices):
 
 
 class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_staff = models.BooleanField(default=False,blank=False)
     is_admin = models.BooleanField(default=False, blank=False)
     is_client = models.BooleanField(default=True, blank=False)
