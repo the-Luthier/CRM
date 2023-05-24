@@ -11,12 +11,13 @@ RUN mkdir /app
 WORKDIR /app
 
 # Update package index
-RUN apk update && apk upgrade
+RUN apk update --no-cache && apk upgrade --no-cache
 
 # Install system dependencies and build tools
-RUN apk add libffi-dev
-RUN apk add wget
-RUN apk add build-base
+RUN apk add --no-cache libffi-dev
+RUN apk add --no-cache wget
+RUN apk add --no-cache build-base
+
 
 # Download and install ncurses 6.4 from source
 RUN set -e; set -x; \
