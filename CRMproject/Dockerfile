@@ -16,7 +16,7 @@ RUN apk update --no-cache && apk upgrade --no-cache
 # Install system dependencies and build tools
 RUN apk add --no-cache libffi-dev
 RUN apk add --no-cache wget
-RUN apk add --no-cache build-base
+RUN apk add  build-base
 
 
 # Download and install ncurses 6.4 from source
