@@ -49,9 +49,6 @@ RUN if [ -z "$encryption_key" ]; then \
 # Encrypt the .env file using the encryption key
 RUN openssl aes-256-cbc -e -in .env -out .env.encrypted -k $encryption_key
 
-# Remove the original .env file
-RUN chmod +w .env && rm .env
-
 # Upgrade pip to the latest version
 RUN pip install --trusted-host pypi.python.org --upgrade pip -v
 RUN pip install --trusted-host pypi.python.org --upgrade pip setuptools -v
@@ -59,6 +56,9 @@ RUN pip install --trusted-host pypi.python.org --upgrade pip setuptools -v
 # Install any needed packages specified in requirements.txt
 COPY requirements.txt /app/
 RUN pip install --trusted-host pypi.python.org --no-cache-dir -r requirements.txt
+
+# Remove the original .env file
+RUN chmod +w .env && rm .env
 
 # Remove build-base and other unnecessary packages
 RUN apk del build-base wget
