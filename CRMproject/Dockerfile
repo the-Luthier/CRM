@@ -15,7 +15,6 @@ RUN apk update && apk upgrade
 
 # Install system dependencies and build tools
 RUN apk add openssl
-RUN apk add postgresql-dev
 RUN apk add libffi-dev
 RUN apk add wget
 RUN apk add build-base
