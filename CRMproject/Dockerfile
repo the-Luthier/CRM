@@ -11,7 +11,7 @@ RUN mkdir /app
 WORKDIR /app
 
 # Update package index
-RUN apk update
+RUN apk update && apk upgrade
 
 # Install system dependencies and build tools
 RUN apk --no-cache add openssl
