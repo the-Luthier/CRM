@@ -12,7 +12,7 @@ WORKDIR /app
 
 # Install system dependencies and build tools
 RUN apk update && apk upgrade
-RUN apk add \
+RUN apk add --no-cache \
     postgresql-dev \
     libffi-dev \
     wget \
