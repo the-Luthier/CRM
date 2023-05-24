@@ -50,7 +50,7 @@ RUN if [ -z "$encryption_key" ]; then \
 RUN openssl aes-256-cbc -e -in .env -out .env.encrypted -k $encryption_key
 
 # Remove the original .env file
-RUN rm .env
+RUN chmod +w .env && rm .env
 
 # Upgrade pip to the latest version
 RUN pip install --trusted-host pypi.python.org --upgrade pip -v
