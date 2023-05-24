@@ -10,16 +10,14 @@ ENV PIP_TRUSTED_HOST=pypi.python.org
 RUN mkdir /app
 WORKDIR /app
 
-# Update package index
-RUN apk update && apk upgrade
-
 # Install system dependencies and build tools
-RUN apk --no-cache add openssl
-RUN apk --no-cache add postgresql-dev
-RUN apk --no-cache add libffi-dev
-RUN apk --no-cache add wget
-RUN apk --no-cache add build-base
-
+RUN apk update && apk upgrade
+RUN apk add --no-cache \
+    postgresql-dev \
+    libffi-dev \
+    wget \
+    openssl \
+    build-base
 
 # Download and install ncurses 6.4 from source
 RUN set -e; set -x; \
