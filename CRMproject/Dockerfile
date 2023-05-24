@@ -4,6 +4,8 @@ FROM python:3.11.3-alpine3.17
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+ENV PIP_TRUSTED_HOST=pypi.python.org
+
 # Create and set the working directory
 RUN mkdir /app
 WORKDIR /app
