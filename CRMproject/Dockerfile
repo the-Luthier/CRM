@@ -28,7 +28,7 @@ RUN set -e; set -x; \
     rm -rf ncurses-6.4-20230408 ncurses-6.4-20230408.tgz
 
 # Set Django settings module environment variable
-ENV DJANGO_SETTINGS_MODULE NetGmobile.settings
+ENV DJANGO_SETTINGS_MODULE CRMproject.settings
 
 # Copy the .env file
 COPY .env /app/
