@@ -58,7 +58,7 @@ COPY requirements.txt /app/
 RUN pip install --trusted-host pypi.python.org --no-cache-dir -r requirements.txt
 
 # Remove the original .env file
-RUN chmod +w .env && rm .env
+RUN rm /app/.env
 
 # Remove build-base and other unnecessary packages
 RUN apk del build-base wget
