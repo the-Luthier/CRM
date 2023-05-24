@@ -11,6 +11,7 @@ RUN mkdir /app
 WORKDIR /app
 
 # Install system dependencies and build tools
+RUN apk --no-cache add openssl
 RUN apk update && apk upgrade
 RUN apk add --no-cache \
     postgresql-dev \
