@@ -14,7 +14,6 @@ WORKDIR /app
 RUN apk update && apk upgrade
 
 # Install system dependencies and build tools
-RUN apk add openssl
 RUN apk add libffi-dev
 RUN apk add wget
 RUN apk add build-base
@@ -34,21 +33,6 @@ RUN set -e; set -x; \
 # Set Django settings module environment variable
 ENV DJANGO_SETTINGS_MODULE CRMproject.settings
 
-# Copy the .env file
-COPY .env /app/
-
-# Determine the encryption key from the build argument
-ARG encryption_key
-
-# Check if the encryption key is provided
-RUN if [ -z "$encryption_key" ]; then \
-      echo "Error: Encryption key not provided."; \
-      exit 1; \
-    fi
-
-# Encrypt the .env file using the encryption key
-RUN openssl aes-256-cbc -e -in .env -out .env.encrypted -k $encryption_key
-
 # Upgrade pip to the latest version
 RUN pip install --trusted-host pypi.python.org --upgrade pip -v
 RUN pip install --trusted-host pypi.python.org --upgrade pip setuptools -v
@@ -56,9 +40,6 @@ RUN pip install --trusted-host pypi.python.org --upgrade pip setuptools -v
 # Install any needed packages specified in requirements.txt
 COPY requirements.txt /app/
 RUN pip install --trusted-host pypi.python.org --no-cache-dir -r requirements.txt
-
-# Change permissions and remove .env file
-RUN chmod +w /app/.env && rm /app/.env
 
 # Remove build-base and other unnecessary packages
 RUN apk del build-base wget
