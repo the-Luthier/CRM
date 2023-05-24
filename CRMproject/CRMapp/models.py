@@ -4,7 +4,7 @@ from django.db import models
 
 from django.db import models
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -16,21 +16,24 @@ class ProfileTypes(models.TextChoices):
 
 
 
+class User(AbstractUser):
+
+    REQUIRED_FIELDS = ['phone_number', 'full_name', 'adress', 'verification_code', 'is_verified', 'date_of_birth',]
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_staff = models.BooleanField(default=False,blank=False)
     is_admin = models.BooleanField(default=False, blank=False)
     is_client = models.BooleanField(default=True, blank=False)
-    id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    id = models.AutoField(primary_key=True)    
     full_name = models.CharField(max_length=200, blank=False)
     phone_number = models.CharField(max_length=15, blank=False)
     e_mail = models.CharField(max_length=100, blank=False)
     adress = models.CharField(max_length=255, blank=False)
     verification_code = models.CharField(max_length=6, blank=False)
     is_verified = models.BooleanField(default=False, blank=False) 
-
-    REQUIRED_FIELDS = ['phone_number', 'full_name', 'adress', 'verification_code', 'is_verified', ]
+    date_of_birth = models.DateField()
 
     def __str__(self):
             return f'{self.user.username}\'s profile'    

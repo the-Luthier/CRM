@@ -143,7 +143,7 @@ STATIC_URL = "/static/"
 
 LOGIN_URL = "/login/"
 
-AUTH_USER_MODEL = "CRMapp.Profile"
+AUTH_USER_MODEL = "CRMapp.User"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
