@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.utils.crypto import get_random_string
 from twilio.rest import Client
 from .models import Profile, FileError, Notifications, Subscriptions, User
-from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm, SubscriptionsForm
+from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm, SubscriptionsForm, FileErrorForm
 from django.contrib.auth.hashers import make_password
 
 
@@ -49,7 +49,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         profile_data = validated_data.pop('profile')
-        user = Profile.objects.create_user(**validated_data)  
+        user = User.objects.create_user(**validated_data)  
 
         # Create a Profile instance for the user and save the phone number
         Profile.objects.create(user=user, phone_number=profile_data['phone_number'])
@@ -140,17 +140,17 @@ class SignupSerializer(serializers.Serializer):
 
 
 class PasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField(max_length=128, write_only=True)
+    password = serializers.CharField(max_length=128, write_only=True)
     new_password1 = serializers.CharField(max_length=128, write_only=True)
     new_password2 = serializers.CharField(max_length=128, write_only=True)
 
     def validate(self, attrs):
-        old_password = attrs.get('old_password')
+        password = attrs.get('password')
         new_password1 = attrs.get('new_password1')
         new_password2 = attrs.get('new_password2')
         verification_code = attrs.get('verification_code')
 
-        if not old_password:
+        if not password:
             raise serializers.ValidationError('Current password is required')
         if not new_password1:
             raise serializers.ValidationError('New password is required')
@@ -160,7 +160,7 @@ class PasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError('New passwords do not match')
 
         user = self.context.get('user')
-        if not authenticate(username=user.username, password=old_password):
+        if not authenticate(username=Profile.id, password=password):
             raise serializers.ValidationError('Current password is incorrect')
 
         try:
@@ -260,6 +260,12 @@ class FileErrorSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         queryset = FileError.objects.filter(user=user)
         return queryset
+    
+    def validate(self, data):
+        form = FileErrorForm(data=data)
+        if not form.is_valid():
+            raise serializers.ValidationError(form.errors)
+        return data
 
 
 

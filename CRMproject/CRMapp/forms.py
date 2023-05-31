@@ -95,3 +95,13 @@ class SubscriptionsForm(forms.Form):
     title = forms.CharField(max_length=100)
     description = forms.CharField(max_length = 255, blank=False)
     price = forms.DecimalField(max_digits=8, decimal_places=2, widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+
+
+
+
+class FileErrorForm(forms.Form):
+    full_name = forms.CharField(max_length=100)
+    title = forms.CharField(max_length=100)
+    description = forms.CharField(max_length = 255, blank=False)
+    
+
