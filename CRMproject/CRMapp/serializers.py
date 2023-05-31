@@ -11,6 +11,7 @@ from django.contrib.auth.hashers import make_password
 
 
 class UserSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     phone_number = serializers.CharField(required=True, write_only=True)
     verification_code = serializers.CharField(required=True, write_only=True)
 
@@ -105,7 +106,8 @@ class SignupSerializer(serializers.Serializer):
     verification_code = serializers.CharField(required=True)
 
     def validate(self, data):
-        username = data.get('username', None)
+        user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+        user = data.get('id', None)
         password = data.get('password', None)
         password2 = data.get('password2', None)        
         phone_number = data.get('phone_number', None)
@@ -113,7 +115,7 @@ class SignupSerializer(serializers.Serializer):
         last_name = data.get('last_name', None)        
         verification_code = data.get('verification_code', None)
 
-        if not username:
+        if not user:
             raise serializers.ValidationError('Username is required')
         if not password:
             raise serializers.ValidationError('Password is required')
@@ -151,6 +153,7 @@ class SignupSerializer(serializers.Serializer):
 
 
 class PasswordSerializer(serializers.Serializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     password = serializers.CharField(max_length=128, write_only=True)
     new_password1 = serializers.CharField(max_length=128, write_only=True)
     new_password2 = serializers.CharField(max_length=128, write_only=True)
@@ -211,6 +214,7 @@ class PasswordSerializer(serializers.Serializer):
 
 
 class ForgotPasswordSerializer(serializers.Serializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     phone_number = serializers.CharField(required=True)
     new_password1 = serializers.CharField(required=True, write_only=True)
     new_password2 = serializers.CharField(required=True, write_only=True)
