@@ -170,11 +170,13 @@ class PasswordSerializer(serializers.Serializer):
     new_password2 = serializers.CharField(max_length=128, write_only=True)
 
     def validate(self, attrs):
+        user = self.context.get('user')
         password = attrs.get('password')
         new_password1 = attrs.get('new_password1')
-        new_password2 = attrs.get('new_password2')
-        verification_code = attrs.get('verification_code')
-
+        new_password2 = attrs.get('new_password2')        
+       
+        if not user.check_password(password):
+            raise serializers.ValidationError('Password is required')
         if not password:
             raise serializers.ValidationError('Current password is required')
         if not new_password1:
@@ -192,9 +194,6 @@ class PasswordSerializer(serializers.Serializer):
             profile = Profile.objects.get(user=user)
         except Profile.DoesNotExist:
             raise serializers.ValidationError('Profile not found')
-
-        if verification_code != profile.verification_code:
-            raise serializers.ValidationError('Verification code is incorrect')
 
         
 
@@ -218,9 +217,7 @@ class PasswordSerializer(serializers.Serializer):
         try:
             profile = Profile.objects.get(user=user)
         except Profile.DoesNotExist:
-            raise serializers.ValidationError('Profile not found')
-
-        profile.verification_code = get_random_string(length=6)
+            raise serializers.ValidationError('Profile not found')        
         profile.save()
 
 
