@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: CRM
+  annotations:
+    container.apparmor.security.beta.kubernetes.io/CRM: runtime/default
 spec:
   replicas: 3
   selector:
