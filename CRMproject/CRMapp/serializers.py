@@ -187,7 +187,7 @@ class PasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError('New passwords do not match')
 
         user = self.context.get('user')
-        if not authenticate(username=Profile.id, password=password):
+        if not authenticate(username=user.id, password=password):
             raise serializers.ValidationError('Current password is incorrect')
 
         try:
