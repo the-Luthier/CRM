@@ -321,3 +321,44 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         if not form.is_valid():
             raise serializers.ValidationError(form.errors)
         return data
+
+
+
+
+class UserInfoSerializer(serializers.FormSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    id = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+    email = serializers.CharField(required=True)
+    phone_number = serializers.CharField(required=True)
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
+    address = serializers.CharField(required=True)
+    form = UserInfoForm
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        user_info = Profile.objects.create(user=user, **validated_data)
+        return user_info
+
+    def get_userinfo(self, validated_data):
+        user_info = Profile.objects.filter(user=self.context['request'].user, **validated_data)
+        serialized_userinfo = self.__class__(user_info, many=True)
+        return serialized_userinfo.data
+
+    def validate(self, data):
+        form = UserInfoForm(data=data)
+        if not form.is_valid():
+            raise serializers.ValidationError(form.errors)
+        return data
+    
+    def save(self):
+        form = UserInfoForm
+        if form.is_valid():
+            user = self.context['request'].user
+            user_info = Profile.objects.create(user=user, **form.cleaned_data)
+            return user_info
+        else:
+            raise serializers.ValidationError(form.errors)
+    
+
