@@ -161,6 +161,7 @@ class SignupSerializer(serializers.Serializer):
         profile = Profile.objects.create(user=user, phone_number=phone_number)
 
         return user
+    
 
 
 class PasswordSerializer(serializers.Serializer):
@@ -194,7 +195,6 @@ class PasswordSerializer(serializers.Serializer):
             profile = Profile.objects.get(user=user)
         except Profile.DoesNotExist:
             raise serializers.ValidationError('Profile not found')
-
         
 
     def save(self, **kwargs):
@@ -207,18 +207,18 @@ class PasswordSerializer(serializers.Serializer):
                 if new_password1 == new_password2:
                     user.set_password(new_password1)
                     user.save()
+                    try:
+                        profile = Profile.objects.get(user=user)
+                        profile.save()
+                    except Profile.DoesNotExist:
+                        raise serializers.ValidationError('Profile not found')
                 else:
                     raise serializers.ValidationError('New passwords do not match')
             else:
                 raise serializers.ValidationError('Current password is incorrect')
         else:
             raise serializers.ValidationError('User not found')
-
-        try:
-            profile = Profile.objects.get(user=user)
-        except Profile.DoesNotExist:
-            raise serializers.ValidationError('Profile not found')        
-        profile.save()
+        
 
 
 
@@ -262,7 +262,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
         form.save()
 
         # Generate and save a verification code
-        profile.verification_code = get_random_string(length=6)
+        profile.verification_code = get_random_string(length=6)    
         profile.save()
 
 
