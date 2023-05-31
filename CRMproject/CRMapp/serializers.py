@@ -1,5 +1,6 @@
 import os
 
+import logging
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, get_user_model
@@ -8,6 +9,9 @@ from twilio.rest import Client
 from .models import Profile, FileError, Notifications, Subscriptions, User
 from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm, SubscriptionsForm, FileErrorForm, SignUpForm
 from django.contrib.auth.hashers import make_password
+
+
+logger = logging.getLogger(__name__)
 
 
 class UserSerializer(serializers.ModelSerializer):
