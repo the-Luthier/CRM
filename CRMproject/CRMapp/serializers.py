@@ -22,23 +22,34 @@ class UserSerializer(serializers.ModelSerializer):
         phone_number = validated_data['phone_number']
         verification_code = validated_data['verification_code']
 
-        # Generate a random verification code and store it in the user's profile
+        # Generate a random 6-digit verification code
+        generated_code = get_random_string(length=6)
+
+        # Save the verification code in the user's profile
         user_profile = Profile.objects.get(phone_number=phone_number)
-        user_profile.verification_code = verification_code
+        user_profile.verification_code = generated_code
         user_profile.save()
 
-        # Send the verification code via SMS
+        # Send the verification code via Twilio SMS
         twilio_account_sid = os.getenv("TWILIO_ACCOUNT_SID")
         twilio_auth_token = os.getenv("TWILIO_AUTH_TOKEN")
         twilio_phone_number = os.getenv("TWILIO_PHONE_NUMBER")
         client = Client(twilio_account_sid, twilio_auth_token)
         message = client.messages.create(
-            body=f'Your verification code is {verification_code == get_random_string(length=6)}',
+            body=f'Your verification code is: {generated_code}',
             from_=twilio_phone_number,
             to=phone_number
         )
 
-        return validated_data
+        # Check if the entered verification code matches the generated one
+        if verification_code == generated_code:            
+            user = User.objects.create(**validated_data)
+            return user
+        else:
+            raise serializers.ValidationError('Invalid verification code')
+        
+
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     profile = UserSerializer(required=True)

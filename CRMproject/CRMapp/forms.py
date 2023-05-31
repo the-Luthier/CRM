@@ -76,7 +76,7 @@ class PasswordChangeForm(forms.Form):
         
         
 class UserInfoForm(forms.Form):
-    id = forms.CharField(max_length=11, required=True, help_text='Username') 
+    id = forms.CharField(max_length=11, required=True, help_text='TC Kimlik No') 
     phone = forms.CharField(min_length=10, required=True, help_text='5XXXXXXXX')  
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
