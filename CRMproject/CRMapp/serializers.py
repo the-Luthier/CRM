@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.utils.crypto import get_random_string
 from twilio.rest import Client
 from .models import Profile, FileError, Notifications, Subscriptions, User
-from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm, SubscriptionsForm, FileErrorForm
+from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm, SubscriptionsForm, FileErrorForm, SignUpForm
 from django.contrib.auth.hashers import make_password
 
 
@@ -96,6 +96,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class SignupSerializer(serializers.Serializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     id = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
     email = serializers.CharField(required=True)
@@ -134,6 +135,10 @@ class SignupSerializer(serializers.Serializer):
         profile = Profile.objects.get(phone_number=phone_number)
         if profile.verification_code != verification_code:
             raise serializers.ValidationError('Incorrect verification code')
+        
+        form = SignUpForm(data)
+        if not form.is_valid():
+            raise serializers.ValidationError(form.errors)
 
         return data
 
