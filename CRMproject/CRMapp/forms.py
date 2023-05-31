@@ -4,7 +4,7 @@ import sys
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_dir)
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NetGmobile.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'CRMproject.settings')
 
 import django
 django.setup()
