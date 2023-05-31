@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.utils.crypto import get_random_string
 from twilio.rest import Client
 from .models import Profile, FileError, Notifications, Subscriptions, User
-from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm, SubscriptionForm
+from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm, SubscriptionsForm
 from django.contrib.auth.hashers import make_password
 
 
@@ -291,7 +291,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         return serialized_subscriptions.data
     
     def validate(self, data):
-        form = SubscriptionForm(data=data)
+        form = SubscriptionsForm(data=data)
         if not form.is_valid():
             raise serializers.ValidationError(form.errors)
         return data
