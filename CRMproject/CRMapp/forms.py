@@ -59,7 +59,7 @@ class PasswordResetForm(BasePasswordResetForm):
     
     class Meta:
         model = get_user_model()
-        fields = ('phone_number')
+        fields = ('phone_number', 'new_password1', 'new_password2')
 
 
 
