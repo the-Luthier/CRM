@@ -139,13 +139,12 @@ class PasswordSerializer(serializers.Serializer):
     new_password2 = serializers.CharField(max_length=128, write_only=True)
 
     def validate(self, attrs):
-        password = attrs.get('password')
+        old_password = attrs.get('old_password')
         new_password1 = attrs.get('new_password1')
         new_password2 = attrs.get('new_password2')
         verification_code = attrs.get('verification_code')
 
-
-        if not password:
+        if not old_password:
             raise serializers.ValidationError('Current password is required')
         if not new_password1:
             raise serializers.ValidationError('New password is required')
@@ -155,7 +154,7 @@ class PasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError('New passwords do not match')
 
         user = self.context.get('user')
-        if not authenticate(username=Profile.full_name , password = False):
+        if not authenticate(username=user.username, password=old_password):
             raise serializers.ValidationError('Current password is incorrect')
 
         try:
@@ -171,13 +170,19 @@ class PasswordSerializer(serializers.Serializer):
     def save(self, **kwargs):
         user = self.context.get('user')
         if user:
-            old_password = Profile.objects.get('password')
+            old_password = self.validated_data.get('old_password')
             if user.check_password(old_password):
-                new_password1 = PasswordChangeForm.data.get('new_password1')
-                new_password2 = PasswordChangeForm.data.get('new_password2')
+                new_password1 = self.validated_data.get('new_password1')
+                new_password2 = self.validated_data.get('new_password2')
                 if new_password1 == new_password2:
                     user.set_password(new_password1)
                     user.save()
+                else:
+                    raise serializers.ValidationError('New passwords do not match')
+            else:
+                raise serializers.ValidationError('Current password is incorrect')
+        else:
+            raise serializers.ValidationError('User not found')
 
         try:
             profile = Profile.objects.get(user=user)
