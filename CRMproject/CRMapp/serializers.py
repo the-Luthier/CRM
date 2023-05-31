@@ -5,17 +5,17 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.crypto import get_random_string
 from twilio.rest import Client
-from .models import Profile, FileError, Notifications, Subscriptions
-from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm
+from .models import Profile, FileError, Notifications, Subscriptions, User
+from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm, SubscriptionForm
 from django.contrib.auth.hashers import make_password
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(required=True, write_only=True)
     verification_code = serializers.CharField(required=True, write_only=True)
 
     class Meta:
-        model = Profile
+        model = User
         fields = ['phone_number', 'verification_code']
 
     def create(self, validated_data):
@@ -40,16 +40,16 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         return validated_data
 
-class UserSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(required=True)
+class ProfileSerializer(serializers.ModelSerializer):
+    profile = UserSerializer(required=True)
 
     class Meta:
         model = Profile
-        fields = ['username', 'password', 'email', 'phone_number', 'first_name', 'last_name', 'address', 'profile']
+        fields = ['id', 'password', 'email', 'phone_number', 'first_name', 'last_name', 'address', 'profile']
 
     def create(self, validated_data):
         profile_data = validated_data.pop('profile')
-        user = User.objects.create_user(**validated_data)  
+        user = Profile.objects.create_user(**validated_data)  
 
         # Create a Profile instance for the user and save the phone number
         Profile.objects.create(user=user, phone_number=profile_data['phone_number'])
@@ -57,15 +57,15 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
     def validate(self, data):
-        username = data.get('username', None)
+        id = data.get('id', None)
         password = data.get('password', None)
 
-        if not username:
-            raise serializers.ValidationError('Username is required')
+        if not id:
+            raise serializers.ValidationError('ID is required')
         if not password:
             raise serializers.ValidationError('Password is required')
 
-        user = authenticate(username=username, password=password)
+        user = authenticate(username=id, password=password)
         if not user:
             raise serializers.ValidationError('Invalid username/password')
 
@@ -75,10 +75,16 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Incorrect verification code')
 
         return data
+    
+    def get_queryset(self):
+        user = self.context['request'].user
+        queryset = Profile.objects.filter(user=user)
+        return queryset
+
 
 
 class SignupSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True)
+    id = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
     email = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
@@ -195,33 +201,65 @@ class PasswordSerializer(serializers.Serializer):
 
 class ForgotPasswordSerializer(serializers.Serializer):
     phone_number = serializers.CharField(required=True)
-    form = PasswordResetForm
+    new_password1 = serializers.CharField(required=True, write_only=True)
+    new_password2 = serializers.CharField(required=True, write_only=True)
 
     def validate(self, data):
         phone_number = data.get('phone_number', None)
+        new_password1 = data.get('new_password1', None)
+        new_password2 = data.get('new_password2', None)
 
         if not phone_number:
             raise serializers.ValidationError('Phone number is required')
+        if not new_password1:
+            raise serializers.ValidationError('New password is required')
+        if not new_password2:
+            raise serializers.ValidationError('Confirm new password is required')
+        if new_password1 != new_password2:
+            raise serializers.ValidationError('New passwords do not match')
 
         try:
             profile = Profile.objects.get(phone_number=phone_number)
         except Profile.DoesNotExist:
             raise serializers.ValidationError('Profile not found')
 
+        data['profile'] = profile  # Include the profile in the validated data
         return data
 
     def save(self, **kwargs):
-        phone_number = self.phone_number
-        profile = Profile.objects.get(phone_number=phone_number)
+        profile = self.validated_data['profile']
+        new_password = self.validated_data['new_password1']
+
+        # Create an instance of your custom PasswordResetForm
+        form = PasswordResetForm(data=self.initial_data)
+        form.is_valid()
+
+        # Reset the password using the custom form
+        form.save()
+
+        # Generate and save a verification code
         profile.verification_code = get_random_string(length=6)
         profile.save()
-        
-        
+
+
 
 class FileErrorSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     class Meta:
         model = FileError
         fields = ['id', 'user', 'title', 'description', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        file_error = FileError.objects.create(user=user, **validated_data)
+        return file_error
+    
+    def get_queryset(self):
+        user = self.context['request'].user
+        queryset = FileError.objects.filter(user=user)
+        return queryset
 
 
 
@@ -229,11 +267,31 @@ class NotificationsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notifications
         fields = ['id', 'user', 'title', 'description', 'created_at']
+
+    def get_notifications(self, user):
+        notifications = Notifications.objects.filter(user=user)
+        serialized_notifications = self.__class__(notifications, many=True)
+        return serialized_notifications.data
         
 
 
 class SubscriptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscriptions
-        fields = ['id', 'user', 'full_name', 'title', 'created_at']        
+        fields = ['id', 'user', 'full_name', 'title', 'created_at']
 
+    def create(self, validated_data):
+        user = self.context['request'].user
+        subscription = Subscriptions.objects.create(user=user, **validated_data)
+        return subscription
+
+    def get_subscriptions(self, user):
+        subscriptions = Subscriptions.objects.filter(user=user)
+        serialized_subscriptions = self.__class__(subscriptions, many=True)
+        return serialized_subscriptions.data
+    
+    def validate(self, data):
+        form = SubscriptionForm(data=data)
+        if not form.is_valid():
+            raise serializers.ValidationError(form.errors)
+        return data
