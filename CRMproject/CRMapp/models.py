@@ -86,3 +86,12 @@ class Subscriptions(models.Model):
 class Device(models.Model):
     user = models.OneToOneField(Profile, on_delete=models.CASCADE)
     device_token = models.CharField(max_length=255, unique=True)
+
+
+
+class LoginLog(models.Model):
+    username = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']

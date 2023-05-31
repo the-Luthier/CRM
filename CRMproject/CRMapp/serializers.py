@@ -1,12 +1,14 @@
 import os
 
 import logging
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.crypto import get_random_string
 from twilio.rest import Client
-from .models import Profile, FileError, Notifications, Subscriptions, User
+from models import Profile, FileError, Notifications, Subscriptions, User, LoginLog
 from .forms import PasswordChangeForm, UserInfoForm, PasswordResetForm, LoginForm, VerifyForm, SubscriptionsForm, FileErrorForm, SignUpForm
 from django.contrib.auth.hashers import make_password
 
@@ -194,13 +196,13 @@ class PasswordSerializer(serializers.Serializer):
         if verification_code != profile.verification_code:
             raise serializers.ValidationError('Verification code is incorrect')
 
-        return attrs
+        
 
     def save(self, **kwargs):
         user = self.context.get('user')
         if user:
-            old_password = self.validated_data.get('old_password')
-            if user.check_password(old_password):
+            password = self.validated_data.get('password')
+            if user.check_password(password):
                 new_password1 = self.validated_data.get('new_password1')
                 new_password2 = self.validated_data.get('new_password2')
                 if new_password1 == new_password2:
@@ -366,3 +368,50 @@ class UserInfoSerializer(serializers.FormSerializer):
             raise serializers.ValidationError(form.errors)
     
 
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, data):
+        username = data.get('username', None)
+        password = data.get('password', None)
+
+        if not username:
+            raise serializers.ValidationError('Username is required')
+        if not password:
+            raise serializers.ValidationError('Password is required')
+
+        form = LoginForm(data={'username': username, 'password': password})
+        if not form.is_valid():
+            raise serializers.ValidationError(form.errors)
+
+        user = authenticate(username=username, password=password)
+        if not user:
+            raise serializers.ValidationError('Invalid username/password')
+
+        # Log the login info
+        self.log_login(username)
+
+        return data
+
+    def log_login(self, username):
+        # Limit the stored log records to the last 15
+        log_records = LoginLog.objects.filter(username=username).order_by('-timestamp')[:15]
+
+        try:
+            # Create a new log record
+            log_record = LoginLog(username=username, timestamp=timezone.now())
+            log_record.save()
+        except ValidationError:
+            # Handle validation errors if necessary
+            pass
+
+        # Delete the oldest log records if there are more than 15
+        if len(log_records) >= 15:
+            oldest_record = log_records[14]
+            oldest_record.delete()
+
+    def get_account_activities(self, username):
+        account_activities = LoginLog.objects.filter(username=username).order_by('-created_at')[:15]
+        return account_activities

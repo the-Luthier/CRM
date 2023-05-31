@@ -9,16 +9,16 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from .serializers import ForgotPasswordSerializer, SignupSerializer, UserSerializer, ProfileSerializer, FileErrorSerializer, NotificationsSerializer, SubscriptionsSerializer, PasswordSerializer
+from serializers import ForgotPasswordSerializer, SignupSerializer, UserSerializer, ProfileSerializer, FileErrorSerializer, NotificationsSerializer, SubscriptionsSerializer, PasswordSerializer
 from . import verify
-from .models import  FileError, Notifications, Subscriptions, Profile
+from models import  FileError, Notifications, Subscriptions, Profile
 
 
 # Create your views here.
 
 @api_view(['POST'])
 def login(request):  
-    form = LoginForm(request.POST)    
+    serializer = LoginForm(request.POST)    
     if request.method == 'POST':
         username = Profile.objects.get('username')
         password = request.data.get('password')
